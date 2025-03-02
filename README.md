@@ -1,0 +1,2 @@
+# adofaimacro
+Macro for adofai
