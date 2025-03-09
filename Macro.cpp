@@ -98,6 +98,10 @@ double oldtonew (char now) {
 			break;
 	}
 }
+bool devmode;
+
+int keys;
+
 //get settings
 int offset;
 double bpm, firstbpm;
@@ -156,27 +160,31 @@ bool inputangleData;
 bool oldversion;
 bool setting;
 double delta;
-long double mod (long double n, long double m) {
+long double mod(long double n, long double m) {
 	while (n < 0 || n >= m) if (n < 0) n += m; else n -= m;
 	return n;
 }
-string quoteandcolon (string s) {
+string quoteandcolon(string s) {
 	s.push_back(quote);
 	s.push_back(':');
 	return quote + s;
 }
-string quotes (string s) { 
+string quotes(string s) { 
 	s.push_back(quote);
 	return quote + s;
 }
-string quoteandcomma (string s) {
+string quoteandcomma(string s) {
 	s.push_back(quote);
 	s.push_back(',');
 	return quote + s;
 }
 int main() {
+	cout << "Devmode: ";
+	cin >> devmode;
+	cout << "File path: ";
 	string file;
 	cin >> file;
+    file.erase(remove(file.begin(), file.end(), quote), file.end());
 	const char* cfile = file.c_str();
 	freopen(cfile, "r", stdin);
 	string inputline;
@@ -193,18 +201,17 @@ int main() {
 
 		//Get angle data (new version)
 		if (inputangleData && oldversion == false) {	
-    		inputline.erase(remove(inputline.begin(), inputline.end(), ' '), inputline.end());
     		inputline.erase(remove(inputline.begin(), inputline.end(), '['), inputline.end());
     		inputline.erase(remove(inputline.begin(), inputline.end(), ']'), inputline.end());
     		inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
     		char* idx;
     		if (strtod(inputline.c_str(), &idx) != 999){
     			nowangle = strtod(inputline.c_str(), &idx);
-    			mids = 0;
+    			mids = false;
 			} else {
 				memangle = lastangle;
     			lastangle = memangle - 180;
-    			mids = 1;
+    			mids = true;
     			continue;
 			}
 			if (mod(180 + lastangle - nowangle, 360) != 0) mss1.push(mod(180 + lastangle - nowangle, 360));
@@ -220,11 +227,11 @@ int main() {
 			for (int i = 0; i < inputline.length(); i++) {
 				if (oldtonew(inputline[i]) != 999){
     				nowangle = oldtonew(inputline[i]);
-    				mids = 0;
+    				mids = false;
 				} else {
 					memangle = lastangle;
     				lastangle = mod(memangle + 180, 360);
-    				mids = 1;
+    				mids = true;
     				continue;
 				}
 				if (mod(180 + lastangle - nowangle, 360) != 0) mss1.push(mod(180 + lastangle - nowangle, 360));
@@ -235,30 +242,29 @@ int main() {
 		//Get settings
 		if (setting) {
 			if (inputoffset) {
-				inputline.erase(remove(inputline.begin(), inputline.end(), ' '), inputline.end());
     			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
     			char* idx;
     			offset = strtod(inputline.c_str(), &idx);
-				inputoffset = 0;
+				inputoffset = false;
 			}
-			if (inputline == quoteandcolon("offset")) inputoffset = 1;
+			if (inputline == quoteandcolon("offset")) inputoffset = true;
 			if (inputbpm) {
-				inputline.erase(remove(inputline.begin(), inputline.end(), ' '), inputline.end());
+				
     			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
     			char* idx;
     			firstbpm = strtod(inputline.c_str(), &idx);
 				bpm = firstbpm;
-				inputbpm = 0;
+				inputbpm = false;
 			}
-			if (inputline == quoteandcolon("bpm")) inputbpm = 1;
+			if (inputline == quoteandcolon("bpm")) inputbpm = true;
 			if (inputpitch) {
-				inputline.erase(remove(inputline.begin(), inputline.end(), ' '), inputline.end());
+				
     			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
     			char* idx;
     			pitch = strtod(inputline.c_str(), &idx);
-				inputpitch = 0;
+				inputpitch = false;
 			}
-			if (inputline == quoteandcolon("pitch")) inputpitch = 1;
+			if (inputline == quoteandcolon("pitch")) inputpitch = true;
 		}
 
 		//Get actions
@@ -268,13 +274,12 @@ int main() {
 			if (inputline == "}") break;
 			//Get floor
 			if (flooring){
-				inputline.erase(remove(inputline.begin(), inputline.end(), ' '), inputline.end());
     			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
     			char* idx;
     			nowfloor = strtod(inputline.c_str(), &idx);
-				flooring = 0;
+				flooring = false;
 			}
-			if (inputline == quoteandcolon("floor")) flooring = 1;
+			if (inputline == quoteandcolon("floor")) flooring = true;
 
 			//Get Eventtype
 			if (Eventtyping){
@@ -282,22 +287,21 @@ int main() {
 					ts.push(nowfloor);
 				}
 				if (inputline == quoteandcomma("SetSpeed")) {
-					setbpm = 1;
+					setbpm = true;
 				}
 				if (inputline == quoteandcomma("Pause")) {
-					setpause = 1;
+					setpause = true;
 				}
 				if (inputline == quoteandcomma("Hold")) {
-					sethold = 1;
+					sethold = true;
 				}
-				Eventtyping = 0; 
+				Eventtyping = false; 
 			}
 			if (inputline == quoteandcolon("eventType")) Eventtyping = true;
 
 			//Get BPM
 			if (setbpm) {
 				if (input) {
-					inputline.erase(remove(inputline.begin(), inputline.end(), ' '), inputline.end());
     				inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
     				char* idx;
     				if (mtp) {
@@ -307,21 +311,21 @@ int main() {
 					}
 					bpms.push(int(nowfloor));
 					bpms.push(bpm);
-					input = 0;
-					setbpm = 0;
+					input = false;
+					setbpm = false;
 				}
 				if (inputline == quoteandcomma("Multiplier")) {
-					mtp = 1;
+					mtp = true;
 				} else if (inputline == quoteandcomma("Bpm")) {
-					mtp = 0;
+					mtp = false;
 				}
 				if (mtp) {
 					if (inputline == quoteandcolon("bpmMultiplier")) {
-						input = 1;
+						input = true;
 					}
 				} else {
 					if (inputline == quoteandcolon("beatsPerMinute")) {
-						input = 1;
+						input = true;
 					}
 				}
 			}
@@ -329,17 +333,16 @@ int main() {
 			//Get Pause
 			if (setpause) {
 				if (inputpause) {
-					inputline.erase(remove(inputline.begin(), inputline.end(), ' '), inputline.end());
     				inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
     				char* idx;
 					double nowpause = strtod(inputline.c_str(), &idx);
 					pauses.push(nowfloor);
 					pauses.push(nowpause);
-					inputpause = 0;
-					setpause = 0;
+					inputpause = false;
+					setpause = false;
 				}
 				if (inputline == quoteandcolon("duration")) {
-					inputpause = 1;
+					inputpause = true;
 				}
 			}
 		}
@@ -349,8 +352,7 @@ int main() {
 
 		//Start to input angle data (new version)
 		if (inputline == quoteandcolon("angleData")) {
-			inputangleData = 1;
-    		inputline.erase(remove(inputline.begin(), inputline.end(), ' '), inputline.end());
+			inputangleData = true;
     		inputline.erase(remove(inputline.begin(), inputline.end(), '['), inputline.end());
     		inputline.erase(remove(inputline.begin(), inputline.end(), ']'), inputline.end());
     		inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
@@ -361,22 +363,22 @@ int main() {
 
 		//Start to input angle data (old version)
 		if (inputline == quoteandcolon("pathData")) {
-			inputangleData = 1;
-			oldversion = 1;
+			inputangleData = true;
+			oldversion = true;
 			printf("Getting old angledata\n");
 		}
 
 		//Start to input settings
 		if (inputline == quoteandcolon("settings")) {
-			inputangleData = 0;
-			setting = 1;
+			inputangleData = false;
+			setting = true;
 			printf("Getting settings\n");
 		}
 
 		//Start to input actions
 		if (inputline == quoteandcolon("actions")) {
-			setting = 0;
-			action = 1;
+			setting = false;
+			action = true;
 			printf("Getting actions\n");
 		}
 	}
@@ -399,7 +401,7 @@ int main() {
 
 	//Pauses
 	nowfloor = 0;
-	bool isgetting = 0;
+	bool isgetting = false;
 	while (mss2.size()) {
 		if (nowfloor == pauses.front()) {
 			pauses.pop();
@@ -430,7 +432,7 @@ int main() {
 		}
 		mss3.pop();
 		nowfloor++;
-		isgetting = 1;
+		isgetting = true;
 	}
 
 	cout << "OK!\n";
@@ -451,11 +453,11 @@ int main() {
 		if (KEY_DOWN(VK_ESCAPE)){
 			return 0;
 		}
-		if (KEY_DOWN(VK_UP)){
+		if (KEY_DOWN(VK_LEFT)){
 			delta -= 0.0005;
 			cout << delta << "\n"; 
 		}
-		if (KEY_DOWN(VK_DOWN)){
+		if (KEY_DOWN(VK_RIGHT)){
 			delta += 0.0005;
 			cout << delta << "\n";
 		}
