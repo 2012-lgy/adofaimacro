@@ -11,7 +11,7 @@ For example:
   `C:\\Users\\Administrator\\Documents\\main.adofai` is **illegal**.  
   `C:\Users\Administrator\Documents\main` is **illegal**.
 # Update log
-Ver 1.0.1 Fixed twirl on the mid-spin and delay 2 tiles.  
+Ver 1.0.1 Fixed twirl after the mid-spin and delay 2 tiles.  
 Ver 1.0.2 Fixed detecting Enter.  
 Ver 1.1.0 Changed the form of the file path.  
-Ver 1.1.1 Fixed "setBPM" on the mid-spin and delay 2 tiles.  
+Ver 1.1.1 Fixed "setBPM" after the mid-spin and delay 2 tiles.  
