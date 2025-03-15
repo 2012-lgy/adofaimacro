@@ -147,6 +147,7 @@ bool mtp;
 queue<double> mss;
 
 const char quote = char(34);
+const char backslash = char(92);
 bool cbpm;
 double totalfinalms;
 
@@ -177,12 +178,29 @@ string quoteandcomma(string s) {
 	return quote + s;
 }
 int main() {
-	cout << "Ver 1.0.2\nFile path: ";
+	cout << "Ver 1.1.0\nFile path: ";
 	string file;
 	cin >> file;
+	string doublebackslash, filebackslash;
+	doublebackslash.push_back(backslash);
+	doublebackslash.push_back(backslash);
+	filebackslash.push_back(backslash);
+	const char* cdoublebackslash = doublebackslash.c_str();
+
+	//To c++ path form
+	size_t start_pos = 0;
+    while (true) {
+        size_t pos = file.find(filebackslash, start_pos);
+        if (pos == string::npos) break;
+        file.replace(pos, filebackslash.length(), doublebackslash);
+        start_pos = pos + doublebackslash.length();
+    }
     file.erase(remove(file.begin(), file.end(), quote), file.end());
+
+	//Open file
 	const char* cfile = file.c_str();
 	freopen(cfile, "r", stdin);
+	
 	string inputline;
     double lastangle = 0;
 
