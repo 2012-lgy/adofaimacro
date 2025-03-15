@@ -98,8 +98,6 @@ double oldtonew (char now) {
 			break;
 	}
 }
-bool devmode;
-
 int keys;
 
 //get settings
@@ -179,9 +177,7 @@ string quoteandcomma(string s) {
 	return quote + s;
 }
 int main() {
-	cout << "Devmode: ";
-	cin >> devmode;
-	cout << "File path: ";
+	cout << "Ver 1.0.1\nFile path: ";
 	string file;
 	cin >> file;
     file.erase(remove(file.begin(), file.end(), quote), file.end());
@@ -212,6 +208,7 @@ int main() {
 				memangle = lastangle;
     			lastangle = memangle - 180;
     			mids = true;
+				mss1.push(-1);
     			continue;
 			}
 			if (mod(180 + lastangle - nowangle, 360) != 0) mss1.push(mod(180 + lastangle - nowangle, 360));
@@ -232,6 +229,7 @@ int main() {
 					memangle = lastangle;
     				lastangle = mod(memangle + 180, 360);
     				mids = true;
+					mss1.push(-1);
     				continue;
 				}
 				if (mod(180 + lastangle - nowangle, 360) != 0) mss1.push(mod(180 + lastangle - nowangle, 360));
@@ -285,6 +283,7 @@ int main() {
 			if (Eventtyping){
 				if (inputline == quotes("Twirl")){
 					ts.push(nowfloor);
+					cout << nowfloor;
 				}
 				if (inputline == quoteandcomma("SetSpeed")) {
 					setbpm = true;
@@ -387,11 +386,16 @@ int main() {
 	nowfloor = 0;
 	while (mss1.size()) {
 		nowfloor++;
-		if (ting) {
-			mss2.push(360 - mod(mss1.front(), 360));
-		} else {
-			mss2.push(mss1.front());
+		if (mss1.front() != -1) {
+			if (ting) {
+				mss2.push(360 - mod(mss1.front(), 360));
+				cout << 360 - mod(mss1.front(), 360) << ' ';
+			} else {
+				mss2.push(mss1.front());
+				cout << mss1.front() << ' ';
+			}
 		}
+		
 		if (nowfloor == ts.front()) {
 			ting = !ting;
 			ts.pop();
