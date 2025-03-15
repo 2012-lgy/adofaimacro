@@ -177,7 +177,7 @@ string quoteandcomma(string s) {
 	return quote + s;
 }
 int main() {
-	cout << "Ver 1.0.1\nFile path: ";
+	cout << "Ver 1.0.2\nFile path: ";
 	string file;
 	cin >> file;
     file.erase(remove(file.begin(), file.end(), quote), file.end());
@@ -283,7 +283,6 @@ int main() {
 			if (Eventtyping){
 				if (inputline == quotes("Twirl")){
 					ts.push(nowfloor);
-					cout << nowfloor;
 				}
 				if (inputline == quoteandcomma("SetSpeed")) {
 					setbpm = true;
@@ -389,10 +388,8 @@ int main() {
 		if (mss1.front() != -1) {
 			if (ting) {
 				mss2.push(360 - mod(mss1.front(), 360));
-				cout << 360 - mod(mss1.front(), 360) << ' ';
 			} else {
 				mss2.push(mss1.front());
-				cout << mss1.front() << ' ';
 			}
 		}
 		
@@ -440,6 +437,7 @@ int main() {
 	}
 
 	cout << "OK!\n";
+	while (!KEY_UP(13));
 	while (!KEY_DOWN(13));
 	cout << "1 / 3\n";
 	while (!KEY_UP(13));
