@@ -8,3 +8,5 @@ For example:
   `C:\\Users\\Administrator\\Documents\\main.adofai` is **legal**.  
   `C:\Users\Administrator\Documents\main.adofai` is **illegal**.  
   `C:\\Users\\Administrator\\Documents\\main` is **illegal**.
+# Update log
+Ver 1.0.1 Fixed Twirl on the mid-spin and delay 2 tiles.
