@@ -178,7 +178,7 @@ string quoteandcomma(string s) {
 	return quote + s;
 }
 int main() {
-	cout << "Ver 1.1.0\nFile path: ";
+	cout << "Ver 1.1.1\nFile path: ";
 	string file;
 	cin >> file;
 	string doublebackslash, filebackslash;
@@ -409,6 +409,8 @@ int main() {
 			} else {
 				mss2.push(mss1.front());
 			}
+		} else {
+			mss2.push(-1);
 		}
 		
 		if (nowfloor == ts.front()) {
@@ -429,7 +431,8 @@ int main() {
 		} else {
 			pausebeats = 0;
 		}
-		mss3.push(mss2.front() + pausebeats * 180.0);
+		if (mss2.front() != -1) mss3.push(mss2.front() + pausebeats * 180.0);
+		else mss3.push(-1);
 		mss2.pop();
 		nowfloor++;
 	}
@@ -445,7 +448,7 @@ int main() {
 			bpm = bpms.front();
 			bpms.pop();
 		}
-		if (isgetting) {
+		if (isgetting && mss3.front() != -1) {
 			totalfinalms += mss3.front() / 180 * 60000 / bpm;
 			mss.push(totalfinalms);
 		}
