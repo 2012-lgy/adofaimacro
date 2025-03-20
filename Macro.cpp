@@ -133,6 +133,12 @@ double pausebeats;
 //holds
 bool sethold;
 
+//multiplanet
+bool setmultiplanet;
+queue<int> multiplantes;
+bool threeplanets;
+bool threeplanetsinmid;
+
 queue<double> mss2;
 
 //final tile
@@ -154,6 +160,8 @@ double totalfinalms;
 //input
 bool input;
 bool inputpause;
+
+queue<double> mss4;
 
 bool inputangleData;
 bool oldversion;
@@ -178,7 +186,7 @@ string quoteandcomma(string s) {
 	return quote + s;
 }
 int main() {
-	cout << "Ver 1.1.1\nFile path: ";
+	cout << "Ver 1.2.0\nFile path: ";
 	string file;
 	cin >> file;
 	string doublebackslash, filebackslash;
@@ -299,17 +307,16 @@ int main() {
 
 			//Get Eventtype
 			if (Eventtyping){
-				if (inputline == quotes("Twirl")){
+				if (inputline == quotes("Twirl")) {
 					ts.push(nowfloor);
-				}
-				if (inputline == quoteandcomma("SetSpeed")) {
+				} else if (inputline == quoteandcomma("SetSpeed")) {
 					setbpm = true;
-				}
-				if (inputline == quoteandcomma("Pause")) {
+				} else if (inputline == quoteandcomma("Pause")) {
 					setpause = true;
-				}
-				if (inputline == quoteandcomma("Hold")) {
+				} else if (inputline == quoteandcomma("Hold")) {
 					sethold = true;
+				} else if (inputline == quoteandcomma("MultiPlanet")) {
+					setmultiplanet = true;
 				}
 				Eventtyping = false; 
 			}
@@ -343,6 +350,26 @@ int main() {
 					if (inputline == quoteandcolon("beatsPerMinute")) {
 						input = true;
 					}
+				}
+			}
+
+			//Get Multiplanet
+			if (setmultiplanet) {
+				if (input) {
+					multiplantes.push(nowfloor);
+					inputline.erase(remove(inputline.begin(), inputline.end(), '}'), inputline.end());
+					inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+					inputline.erase(remove(inputline.begin(), inputline.end(), quote), inputline.end());
+					if (inputline == "ThreePlanets") {
+						multiplantes.push(3);
+					} else {
+						multiplantes.push(2);
+					}
+					input = false;
+					setmultiplanet = false;
+				}
+				if (inputline == quoteandcolon("planets")) {
+					input = true;
 				}
 			}
 
@@ -422,7 +449,6 @@ int main() {
 
 	//Pauses
 	nowfloor = 0;
-	bool isgetting = false;
 	while (mss2.size()) {
 		if (nowfloor == pauses.front()) {
 			pauses.pop();
@@ -436,23 +462,47 @@ int main() {
 		mss2.pop();
 		nowfloor++;
 	}
+
+	//Multiplanets
+	nowfloor = 0;
+	while (mss3.size()) {
+		if (nowfloor == multiplantes.front()) {
+			multiplantes.pop();
+			threeplanets = (multiplantes.front() == 3);
+			multiplantes.pop();
+		}
+		if (mss3.front() != -1) {
+			if (threeplanets && !threeplanetsinmid) {
+				if (mss3.front() > 60) mss4.push(mss3.front() - 60);
+				else mss4.push(mss3.front() + 300);
+			} else {
+				mss4.push(mss3.front());
+			}
+		} else {
+			mss4.push(-1);
+			threeplanetsinmid = 1;
+		} 
+		mss3.pop();
+		nowfloor++;
+	}
 	
 	//Change BPM
 	bpm = firstbpm;
 	nowfloor = 0;
 	totalfinalms = 0;
+	bool isgetting = false;
 	//get final ms
-	while (mss3.size()) {
+	while (mss4.size()) {
 		if (nowfloor == bpms.front()) {
 			bpms.pop();
 			bpm = bpms.front();
 			bpms.pop();
 		}
-		if (isgetting && mss3.front() != -1) {
-			totalfinalms += mss3.front() / 180 * 60000 / bpm;
+		if (isgetting && mss4.front() != -1) {
+			totalfinalms += mss4.front() / 180 * 60000 / bpm;
 			mss.push(totalfinalms);
 		}
-		mss3.pop();
+		mss4.pop();
 		nowfloor++;
 		isgetting = true;
 	}
@@ -469,7 +519,6 @@ int main() {
 	cout << "3 / 3\n";
 	keybd_event('F', 0, 0, 0);
 	clock_t start = clock();
-	if (oldversion) keybd_event('D', 0, 0, 0);
 	//Press key
 	while (mss.size()) {
 		clock_t end = clock();
