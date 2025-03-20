@@ -1,5 +1,5 @@
 # Disclaimers
-**For entertainment purposes only, please do not use it for forgery (including but not limited to competitions, breaking levels). If a video using it is published, please indicate it in the video, title, or introduction.**
+**For entertainment purposes only, please do not use it for forge achievements (including but not limited to competitions, breaking levels). If a video using it is published, please indicate it in the video, title, or introduction.**
 # Download
 Because it requires the use of the **"Windows. h"** header library in **C++** for key clicking, so **Windows Defender** will consider it a virus as a normal phenomenon.
 # File path form
