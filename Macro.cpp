@@ -186,7 +186,7 @@ string quoteandcomma(string s) {
 	return quote + s;
 }
 int main() {
-	cout << "Ver 1.2.1\nFile path: ";
+	cout << "Ver 1.2.2\nFile path: ";
 	string file;
 	cin >> file;
 	string doublebackslash, filebackslash;
@@ -273,7 +273,6 @@ int main() {
 			}
 			if (inputline == quoteandcolon("offset")) inputoffset = true;
 			if (inputbpm) {
-				
     			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
     			char* idx;
     			firstbpm = strtod(inputline.c_str(), &idx);
@@ -282,7 +281,6 @@ int main() {
 			}
 			if (inputline == quoteandcolon("bpm")) inputbpm = true;
 			if (inputpitch) {
-				
     			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
     			char* idx;
     			pitch = strtod(inputline.c_str(), &idx);
@@ -493,10 +491,11 @@ int main() {
 				else mss4.push(mss3.front() + 300);
 			} else {
 				mss4.push(mss3.front());
+				if (threeplanetsinmid) threeplanetsinmid = false;
 			}
 		} else {
 			mss4.push(-1);
-			threeplanetsinmid = 1;
+			threeplanetsinmid = true;
 		} 
 		mss3.pop();
 		nowfloor++;
