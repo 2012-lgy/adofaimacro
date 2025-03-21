@@ -186,7 +186,7 @@ string quoteandcomma(string s) {
 	return quote + s;
 }
 int main() {
-	cout << "Ver 1.2.0\nFile path: ";
+	cout << "Ver 1.2.1\nFile path: ";
 	string file;
 	cin >> file;
 	string doublebackslash, filebackslash;
@@ -383,6 +383,22 @@ int main() {
 					pauses.push(nowpause);
 					inputpause = false;
 					setpause = false;
+				}
+				if (inputline == quoteandcolon("duration")) {
+					inputpause = true;
+				}
+			}
+			
+			//Get Hold
+			if (sethold) {
+				if (inputpause) {
+    				inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+    				char* idx;
+					double nowpause = strtod(inputline.c_str(), &idx);
+					pauses.push(nowfloor);
+					pauses.push(nowpause * 2);
+					inputpause = false;
+					sethold = false;
 				}
 				if (inputline == quoteandcolon("duration")) {
 					inputpause = true;
