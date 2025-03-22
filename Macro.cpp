@@ -186,9 +186,9 @@ string quoteandcomma(string s) {
 	return quote + s;
 }
 int main() {
-	cout << "Ver 1.2.2\nFile path: ";
+	cout << "Ver 1.2.3\nFile path: ";
 	string file;
-	cin >> file;
+	getline(cin, file);
 	string doublebackslash, filebackslash;
 	doublebackslash.push_back(backslash);
 	doublebackslash.push_back(backslash);
