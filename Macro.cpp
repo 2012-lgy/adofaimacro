@@ -91,7 +91,7 @@ double oldtonew (char now) {
 			return 108;
 			break;
 		case '7':
-			return 180 * 5 / 7;
+			return 900 / 7;
 			break;
 		case '!':
 			return 999;
@@ -135,7 +135,7 @@ bool sethold;
 
 //multiplanet
 bool setmultiplanet;
-queue<int> multiplantes;
+queue<int> multiplanets;
 bool threeplanets;
 bool threeplanetsinmid;
 
@@ -167,6 +167,10 @@ bool inputangleData;
 bool oldversion;
 bool setting;
 double delta;
+
+int readykey, pressingkey, startkey;
+long double offsetnum;
+
 long double mod(long double n, long double m) {
 	while (n < 0 || n >= m) if (n < 0) n += m; else n -= m;
 	return n;
@@ -185,10 +189,15 @@ string quoteandcomma(string s) {
 	s.push_back(',');
 	return quote + s;
 }
+void movechar(string str, char c) {
+	str.erase(remove(str.begin(), str.end(), c), str.end());
+}
 int main() {
-	cout << "Ver 1.2.3\nFile path: ";
+	printf("Ver 1.3.0\n");
 	string file;
+	printf("File path: ");
 	getline(cin, file);
+	file.erase(remove(file.begin(), file.end(), quote), file.end());
 	string doublebackslash, filebackslash;
 	doublebackslash.push_back(backslash);
 	doublebackslash.push_back(backslash);
@@ -203,7 +212,7 @@ int main() {
         file.replace(pos, filebackslash.length(), doublebackslash);
         start_pos = pos + doublebackslash.length();
     }
-    file.erase(remove(file.begin(), file.end(), quote), file.end());
+    movechar(file, quote);
 
 	//Open file
 	const char* cfile = file.c_str();
@@ -216,44 +225,24 @@ int main() {
 	while (1) {
 		cin >> inputline;
 		if (inputline == "\0") {
-			cout << "Invaild path";
+			cout << file << " is invaild.";
 			return 0;
 		}
 		double nowangle;
 
 		//Get angle data (new version)
-		if (inputangleData && oldversion == false) {	
-    		inputline.erase(remove(inputline.begin(), inputline.end(), '['), inputline.end());
-    		inputline.erase(remove(inputline.begin(), inputline.end(), ']'), inputline.end());
-    		inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
-    		char* idx;
-    		if (strtod(inputline.c_str(), &idx) != 999){
-    			nowangle = strtod(inputline.c_str(), &idx);
-    			mids = false;
-			} else {
-				memangle = lastangle;
-    			lastangle = memangle - 180;
-    			mids = true;
-				mss1.push(-1);
-    			continue;
-			}
-			if (mod(180 + lastangle - nowangle, 360) != 0) mss1.push(mod(180 + lastangle - nowangle, 360));
-			else mss1.push(360);
-			lastangle = nowangle;
-		}
-
-		//Get angle data (old version)
-		if (inputangleData && oldversion == true && inputline != quoteandcolon("settings")) {
-    		inputline.erase(remove(inputline.begin(), inputline.end(), quote), inputline.end());
-    		inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
-			queue<char> oldangles;
-			for (int i = 0; i < inputline.length(); i++) {
-				if (oldtonew(inputline[i]) != 999){
-    				nowangle = oldtonew(inputline[i]);
+		if (inputangleData) {
+			if (!oldversion) {
+				movechar(inputline, '[');
+				movechar(inputline, ']');
+				movechar(inputline, ',');
+    			char* idx;
+    			if (strtod(inputline.c_str(), &idx) != 999){
+    				nowangle = strtod(inputline.c_str(), &idx);
     				mids = false;
 				} else {
 					memangle = lastangle;
-    				lastangle = mod(memangle + 180, 360);
+    				lastangle = memangle - 180;
     				mids = true;
 					mss1.push(-1);
     				continue;
@@ -263,17 +252,44 @@ int main() {
 				lastangle = nowangle;
 			}
 		}
+
+		//Get angle data (old version)
+		if (inputangleData) {
+			if (oldversion) {
+				if (inputline != quoteandcolon("settings")) {
+					inputline.erase(remove(inputline.begin(), inputline.end(), quote), inputline.end());
+    				movechar(inputline, ',');
+					queue<char> oldangles;
+					for (int i = 0; i < inputline.length(); i++) {
+						if (oldtonew(inputline[i]) != 999){
+    						nowangle = oldtonew(inputline[i]);
+    						mids = false;
+						} else {
+							memangle = lastangle;
+    						lastangle = mod(memangle + 180, 360);
+    						mids = true;
+							mss1.push(-1);
+    						continue;
+						}
+						if (mod(180 + lastangle - nowangle, 360)) mss1.push(mod(180 + lastangle - nowangle, 360));
+						else mss1.push(360);
+						lastangle = nowangle;
+					}
+				}
+			}
+			
+		}
 		//Get settings
 		if (setting) {
 			if (inputoffset) {
-    			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+    			movechar(inputline, ',');
     			char* idx;
     			offset = strtod(inputline.c_str(), &idx);
 				inputoffset = false;
 			}
 			if (inputline == quoteandcolon("offset")) inputoffset = true;
 			if (inputbpm) {
-    			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+    			movechar(inputline, ',');
     			char* idx;
     			firstbpm = strtod(inputline.c_str(), &idx);
 				bpm = firstbpm;
@@ -281,7 +297,7 @@ int main() {
 			}
 			if (inputline == quoteandcolon("bpm")) inputbpm = true;
 			if (inputpitch) {
-    			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+    			movechar(inputline, ',');
     			char* idx;
     			pitch = strtod(inputline.c_str(), &idx);
 				inputpitch = false;
@@ -296,7 +312,7 @@ int main() {
 			if (inputline == "}") break;
 			//Get floor
 			if (flooring){
-    			inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+    			movechar(inputline, ',');
     			char* idx;
     			nowfloor = strtod(inputline.c_str(), &idx);
 				flooring = false;
@@ -323,7 +339,7 @@ int main() {
 			//Get BPM
 			if (setbpm) {
 				if (input) {
-    				inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+    				movechar(inputline, ',');
     				char* idx;
     				if (mtp) {
 						bpm *= strtod(inputline.c_str(), &idx);
@@ -354,14 +370,14 @@ int main() {
 			//Get Multiplanet
 			if (setmultiplanet) {
 				if (input) {
-					multiplantes.push(nowfloor);
-					inputline.erase(remove(inputline.begin(), inputline.end(), '}'), inputline.end());
-					inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+					multiplanets.push(nowfloor);
+					movechar(inputline, '}');
+					movechar(inputline, ',');
 					inputline.erase(remove(inputline.begin(), inputline.end(), quote), inputline.end());
 					if (inputline == "ThreePlanets") {
-						multiplantes.push(3);
+						multiplanets.push(3);
 					} else {
-						multiplantes.push(2);
+						multiplanets.push(2);
 					}
 					input = false;
 					setmultiplanet = false;
@@ -374,7 +390,7 @@ int main() {
 			//Get Pause
 			if (setpause) {
 				if (inputpause) {
-    				inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+    				movechar(inputline, ',');
     				char* idx;
 					double nowpause = strtod(inputline.c_str(), &idx);
 					pauses.push(nowfloor);
@@ -390,7 +406,7 @@ int main() {
 			//Get Hold
 			if (sethold) {
 				if (inputpause) {
-    				inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+    				movechar(inputline, ',');
     				char* idx;
 					double nowpause = strtod(inputline.c_str(), &idx);
 					pauses.push(nowfloor);
@@ -412,7 +428,7 @@ int main() {
 			inputangleData = true;
     		inputline.erase(remove(inputline.begin(), inputline.end(), '['), inputline.end());
     		inputline.erase(remove(inputline.begin(), inputline.end(), ']'), inputline.end());
-    		inputline.erase(remove(inputline.begin(), inputline.end(), ','), inputline.end());
+    		movechar(inputline, ',');
     		char* idx;
     		lastangle = strtod(inputline.c_str(), &idx);
 			printf("Getting new angledata\n");
@@ -480,15 +496,21 @@ int main() {
 	//Multiplanets
 	nowfloor = 0;
 	while (mss3.size()) {
-		if (nowfloor == multiplantes.front()) {
-			multiplantes.pop();
-			threeplanets = (multiplantes.front() == 3);
-			multiplantes.pop();
+		if (nowfloor == multiplanets.front()) {
+			multiplanets.pop();
+			if (multiplanets.front() == 3) threeplanets = true;
+			else threeplanets = false;
+			multiplanets.pop();
 		}
 		if (mss3.front() != -1) {
-			if (threeplanets && !threeplanetsinmid) {
-				if (mss3.front() > 60) mss4.push(mss3.front() - 60);
-				else mss4.push(mss3.front() + 300);
+			if (threeplanets) {
+				if (!threeplanetsinmid) {
+					if (mss3.front() > 60) mss4.push(mss3.front() - 60);
+					else mss4.push(mss3.front() + 300);
+				} else {
+					mss4.push(mss3.front());
+					if (threeplanetsinmid) threeplanetsinmid = false;
+				}
 			} else {
 				mss4.push(mss3.front());
 				if (threeplanetsinmid) threeplanetsinmid = false;
@@ -506,16 +528,18 @@ int main() {
 	nowfloor = 0;
 	totalfinalms = 0;
 	bool isgetting = false;
-	//get final ms
+	//Get final ms
 	while (mss4.size()) {
 		if (nowfloor == bpms.front()) {
 			bpms.pop();
 			bpm = bpms.front();
 			bpms.pop();
 		}
-		if (isgetting && mss4.front() != -1) {
-			totalfinalms += mss4.front() / 180 * 60000 / bpm;
-			mss.push(totalfinalms);
+		if (isgetting) {
+			if (mss4.front() != -1) {
+				totalfinalms += mss4.front() / 180 * 60000 / bpm;
+				mss.push(totalfinalms);
+			}
 		}
 		mss4.pop();
 		nowfloor++;
@@ -523,15 +547,25 @@ int main() {
 	}
 
 	cout << "OK!\n";
-	while (!KEY_UP(13));
-	while (!KEY_DOWN(13));
-	cout << "1 / 3\n";
-	while (!KEY_UP(13));
-	while (!KEY_DOWN(13));
-	cout << "2 / 3\n";
-	while (!KEY_UP(13));
-	while (!KEY_DOWN(13));
-	cout << "3 / 3\n";
+
+	//Get ready
+	bool getready = false;
+	bool press = false;
+	while (true) {
+		if (KEY_DOWN(13)) {
+			if (!press) {
+				press = true;
+				getready = !getready;
+				if (getready) printf("Ready.\n");
+				else printf("Cancel.\n");
+			}
+		} else {
+			press = false;
+		}
+		if (KEY_DOWN(45)) if (getready) break;
+	}
+
+	//insert 45
 	keybd_event('F', 0, 0, 0);
 	clock_t start = clock();
 	//Press key
@@ -541,12 +575,12 @@ int main() {
 			return 0;
 		}
 		if (KEY_DOWN(VK_LEFT)){
-			delta -= 0.0005;
-			cout << delta << "\n"; 
+			delta -= 0.002;
+			printf("Offset %.15f\n", delta); 
 		}
 		if (KEY_DOWN(VK_RIGHT)){
-			delta += 0.0005;
-			cout << delta << "\n";
+			delta += 0.002;
+			printf("Offset %.15f\n", delta); 
 		}
 		if (double(end - start) * pitch / 100 + delta >= mss.front()) {
 			keybd_event('K', 0, 0, 0);
