@@ -42,3 +42,7 @@ Ver 1.3.0
 
 Ver 1.4.0  
 * Added specific information, including BPM, delta etc.
+
+Ver 1.5.0  
+* Fixed the issue of Multiplanet.
+* Known issue: When playing "Synthion - Lights Years Away" made by pixxy, it will die on the 923rd tile
