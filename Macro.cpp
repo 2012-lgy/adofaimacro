@@ -1,15 +1,14 @@
-#include <queue>
-#include <iostream>
-#include <conio.h>
-#include <cerrno>
-#include <cstdlib>
-#include <windows.h>
-#include <cmath>
-#include <string>
-#include <sstream>
 #include <algorithm>
+#include <cerrno>
 #include <cstdio>
+#include <iostream>
+#include <limits>
+#include <queue>
+#include <sstream>
+#include <string>
 #include <time.h>
+#include <windows.h>
+
 #define KEY_DOWN(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 1 : 0)
 #define KEY_UP(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 0 : 1)
 using namespace std;
@@ -96,6 +95,9 @@ double oldtonew (char now) {
 		case '!':
 			return 999;
 			break;
+		default:
+			return 180;
+			break;
 	}
 }
 int keys;
@@ -132,6 +134,8 @@ double pausebeats;
 
 //holds
 bool sethold;
+queue<int> holdtile;
+queue<int> holdmidspin;
 
 //multiplanet
 bool setmultiplanet;
@@ -168,8 +172,13 @@ bool oldversion;
 bool setting;
 double delta;
 
+bool showbpm, cuslev;
+
 int readykey, pressingkey, startkey;
 long double offsetnum;
+
+int bigworld, smallworld;
+
 
 long double mod(long double n, long double m) {
 	while (n < 0 || n >= m) if (n < 0) n += m; else n -= m;
@@ -193,43 +202,68 @@ void movechar(string str, char c) {
 	str.erase(remove(str.begin(), str.end(), c), str.end());
 }
 int main() {
-	printf("Ver 1.3.0\n");
-	string file;
-	printf("File path: ");
-	getline(cin, file);
-	file.erase(remove(file.begin(), file.end(), quote), file.end());
-	string doublebackslash, filebackslash;
-	doublebackslash.push_back(backslash);
-	doublebackslash.push_back(backslash);
-	filebackslash.push_back(backslash);
-	const char* cdoublebackslash = doublebackslash.c_str();
-
-	//To c++ path form
-	size_t start_pos = 0;
-    while (true) {
-        size_t pos = file.find(filebackslash, start_pos);
-        if (pos == string::npos) break;
-        file.replace(pos, filebackslash.length(), doublebackslash);
-        start_pos = pos + doublebackslash.length();
-    }
-    movechar(file, quote);
-
-	//Open file
-	const char* cfile = file.c_str();
-	freopen(cfile, "r", stdin);
+	printf("Ver 1.5.0 (2025-05-30 22:49)\nShow specific information: ");
+	cin >> showbpm;
+	printf("Is custom level: ");
+	cin >> cuslev;
+	
+	string world;
+	if (!cuslev) {
+		printf("Level Library:\n  XI-X\n\nPlease enter the level name:");
+		cin >> world;
+		if (!cuslev) {
+			printf("Pitch: ");
+			cin >> pitch;
+		}
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		if (world == "XI-X") freopen("XI-X.adofai", "r", stdin);
+		else {
+			printf("Coming soon.");
+			return 0;
+		}
+	}
+	
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
+	
+	if (cuslev) {
+		string file;
+		printf("File path: ");
+		getline(cin, file);
+		file.erase(remove(file.begin(), file.end(), quote), file.end());
+		string doublebackslash, filebackslash;
+		doublebackslash.push_back(backslash);
+		doublebackslash.push_back(backslash);
+		filebackslash.push_back(backslash);
+		//const char* cdoublebackslash = doublebackslash.c_str();
+	
+		//To c++ path form
+		size_t start_pos = 0;
+	    while (true) {
+	        size_t pos = file.find(filebackslash, start_pos);
+	        if (pos == string::npos) break;
+	        file.replace(pos, filebackslash.length(), doublebackslash);
+	        start_pos = pos + doublebackslash.length();
+	    }
+	    movechar(file, quote);
+	
+		//Open file
+		const char* cfile = file.c_str();
+		freopen(cfile, "r", stdin);
+	}
+	
 	
 	string inputline;
     double lastangle = 0;
 
-	//Input
-	while (1) {
+	//Custom level input
+	int floor_angledata = 0;
+	while (true) {
 		cin >> inputline;
 		if (inputline == "\0") {
-			cout << file << " is invaild.";
+			printf("It is invaild.");
 			return 0;
 		}
 		double nowangle;
-
 		//Get angle data (new version)
 		if (inputangleData) {
 			if (!oldversion) {
@@ -245,22 +279,18 @@ int main() {
     				lastangle = memangle - 180;
     				mids = true;
 					mss1.push(-1);
+					holdmidspin.push(floor_angledata);
     				continue;
 				}
 				if (mod(180 + lastangle - nowangle, 360) != 0) mss1.push(mod(180 + lastangle - nowangle, 360));
 				else mss1.push(360);
-				lastangle = nowangle;
-			}
-		}
-
-		//Get angle data (old version)
-		if (inputangleData) {
-			if (oldversion) {
+				lastangle = nowangle;	
+			} else {
 				if (inputline != quoteandcolon("settings")) {
 					inputline.erase(remove(inputline.begin(), inputline.end(), quote), inputline.end());
     				movechar(inputline, ',');
 					queue<char> oldangles;
-					for (int i = 0; i < inputline.length(); i++) {
+					for (unsigned int i = 0; i < inputline.length(); i++) {
 						if (oldtonew(inputline[i]) != 999){
     						nowangle = oldtonew(inputline[i]);
     						mids = false;
@@ -269,6 +299,7 @@ int main() {
     						lastangle = mod(memangle + 180, 360);
     						mids = true;
 							mss1.push(-1);
+					holdmidspin.push(floor_angledata);
     						continue;
 						}
 						if (mod(180 + lastangle - nowangle, 360)) mss1.push(mod(180 + lastangle - nowangle, 360));
@@ -277,7 +308,7 @@ int main() {
 					}
 				}
 			}
-			
+			floor_angledata++;
 		}
 		//Get settings
 		if (setting) {
@@ -299,15 +330,14 @@ int main() {
 			if (inputpitch) {
     			movechar(inputline, ',');
     			char* idx;
-    			pitch = strtod(inputline.c_str(), &idx);
+    			if (cuslev) pitch = strtod(inputline.c_str(), &idx);
 				inputpitch = false;
 			}
 			if (inputline == quoteandcolon("pitch")) inputpitch = true;
 		}
 
 		//Get actions
-		if (action){
-			int oldversiontoquitfile = 0;
+		if (action) {
 			if (inputline == "]" || inputline == quoteandcolon("decorations")) break;
 			if (inputline == "}") break;
 			//Get floor
@@ -320,7 +350,7 @@ int main() {
 			if (inputline == quoteandcolon("floor")) flooring = true;
 
 			//Get Eventtype
-			if (Eventtyping){
+			if (Eventtyping) {
 				if (inputline == quotes("Twirl")) {
 					ts.push(nowfloor);
 				} else if (inputline == quoteandcomma("SetSpeed")) {
@@ -374,7 +404,7 @@ int main() {
 					movechar(inputline, '}');
 					movechar(inputline, ',');
 					inputline.erase(remove(inputline.begin(), inputline.end(), quote), inputline.end());
-					if (inputline == "ThreePlanets") {
+					if (inputline == "ThreePlanets}," || inputline == "ThreePlanets}") {
 						multiplanets.push(3);
 					} else {
 						multiplanets.push(2);
@@ -410,6 +440,7 @@ int main() {
     				char* idx;
 					double nowpause = strtod(inputline.c_str(), &idx);
 					pauses.push(nowfloor);
+					holdtile.push(nowfloor);
 					pauses.push(nowpause * 2);
 					inputpause = false;
 					sethold = false;
@@ -455,7 +486,8 @@ int main() {
 			printf("Getting actions\n");
 		}
 	}
-
+	
+	printf("Processing data\n");
 	//Twirls
 	nowfloor = 0;
 	while (mss1.size()) {
@@ -495,34 +527,35 @@ int main() {
 
 	//Multiplanets
 	nowfloor = 0;
+	bool midspinafterthreeball = false;
 	while (mss3.size()) {
+		//Change
 		if (nowfloor == multiplanets.front()) {
 			multiplanets.pop();
 			if (multiplanets.front() == 3) threeplanets = true;
 			else threeplanets = false;
+			cout << nowfloor << ' ' << threeplanets << endl;
 			multiplanets.pop();
 		}
-		if (mss3.front() != -1) {
-			if (threeplanets) {
-				if (!threeplanetsinmid) {
-					if (mss3.front() > 60) mss4.push(mss3.front() - 60);
-					else mss4.push(mss3.front() + 300);
-				} else {
-					mss4.push(mss3.front());
-					if (threeplanetsinmid) threeplanetsinmid = false;
-				}
+		//if not midspin
+		if (threeplanets) {
+			if (mss3.front() != -1 && !midspinafterthreeball) {
+				if (mss3.front() > 60) mss4.push(mss3.front() - 60);
+				else mss4.push(mss3.front() + 300);
 			} else {
 				mss4.push(mss3.front());
-				if (threeplanetsinmid) threeplanetsinmid = false;
+				midspinafterthreeball = false;
+				if (mss3.front() == -1) {
+					midspinafterthreeball = true;
+				}
 			}
 		} else {
-			mss4.push(-1);
-			threeplanetsinmid = true;
-		} 
+			mss4.push(mss3.front());
+		}
 		mss3.pop();
 		nowfloor++;
 	}
-	
+
 	//Change BPM
 	bpm = firstbpm;
 	nowfloor = 0;
@@ -546,11 +579,32 @@ int main() {
 		isgetting = true;
 	}
 
-	cout << "OK!\n";
-
+	//Hold
+	nowfloor = 0;
+	int midspins = 0;
+	queue<int> lholdtile;
+	while (holdtile.size()) {
+		if (holdmidspin.front() == nowfloor) {
+			midspins++;
+			holdmidspin.pop();
+		}
+		if (holdtile.front() == nowfloor) {
+			lholdtile.push(nowfloor - midspins);
+			holdtile.pop();
+		}
+		nowfloor++;
+	}
+	holdtile = lholdtile;
+	
+	fclose(stdin); 
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
+	printf("OK!\n");
+	
 	//Get ready
 	bool getready = false;
 	bool press = false;
+	double lastms = 0;
+	nowfloor = 0;
 	while (true) {
 		if (KEY_DOWN(13)) {
 			if (!press) {
@@ -566,30 +620,77 @@ int main() {
 	}
 
 	//insert 45
-	keybd_event('F', 0, 0, 0);
 	clock_t start = clock();
 	//Press key
-	while (mss.size()) {
-		clock_t end = clock();
-		if (KEY_DOWN(VK_ESCAPE)){
-			return 0;
+	keybd_event('K', 0, 0, 0);
+
+	if (showbpm) {
+		while (mss.size()) {
+			clock_t end = clock();
+			if (KEY_DOWN(VK_ESCAPE)){
+				keybd_event('F', 0, KEYEVENTF_KEYUP, 0);
+				keybd_event('K', 0, KEYEVENTF_KEYUP, 0);
+				return 0;
+			}
+			if (KEY_DOWN(VK_LEFT)){
+				delta -= 0.002;
+				printf("Offset %.15f\n", delta); 
+			}
+			if (KEY_DOWN(VK_RIGHT)){
+				delta += 0.002;
+				printf("Offset %.15f\n", delta); 
+			}
+			if (double(end - start) * pitch / 100 + delta >= mss.front()) {
+				nowfloor++;
+				if (nowfloor % 2) {
+					if (holdtile.front() != nowfloor) keybd_event('F', 0, 0, 0);
+					else holdtile.pop();
+					mss.pop();
+					keybd_event('K', 0, KEYEVENTF_KEYUP, 0);
+				} else {
+					if (holdtile.front() != nowfloor) keybd_event('K', 0, 0, 0);
+					else holdtile.pop();
+					mss.pop();
+					keybd_event('F', 0, KEYEVENTF_KEYUP, 0);
+				}
+				printf("%d\nBPM: %f\nDelta: %fms\nHold: %d\n", nowfloor, 60000 / (mss.front() - lastms), double(end - start) - mss.front(), holdtile.front());
+				lastms = mss.front();
+			}
 		}
-		if (KEY_DOWN(VK_LEFT)){
-			delta -= 0.002;
-			printf("Offset %.15f\n", delta); 
-		}
-		if (KEY_DOWN(VK_RIGHT)){
-			delta += 0.002;
-			printf("Offset %.15f\n", delta); 
-		}
-		if (double(end - start) * pitch / 100 + delta >= mss.front()) {
-			keybd_event('K', 0, 0, 0);
-			mss.pop();
-			keybd_event('K', 0, KEYEVENTF_KEYUP, 0);
+	} else {
+		while (mss.size()) {
+			clock_t end = clock();
+			if (KEY_DOWN(VK_ESCAPE)){
+				keybd_event('F', 0, KEYEVENTF_KEYUP, 0);
+				keybd_event('K', 0, KEYEVENTF_KEYUP, 0);
+				return 0;
+			}
+			if (KEY_DOWN(VK_LEFT)){
+				delta -= 0.002;
+				printf("Offset %.15f\n", delta); 
+			}
+			if (KEY_DOWN(VK_RIGHT)){
+				delta += 0.002;
+				printf("Offset %.15f\n", delta); 
+			}
+			if (double(end - start) * pitch / 100 + delta >= mss.front()) {
+				nowfloor++;
+				if (nowfloor % 2) {
+					if (holdtile.front() != nowfloor) keybd_event('F', 0, 0, 0);
+					else holdtile.pop();
+					mss.pop();
+					keybd_event('K', 0, KEYEVENTF_KEYUP, 0);
+				} else {
+					if (holdtile.front() != nowfloor) keybd_event('K', 0, 0, 0);
+					else holdtile.pop();
+					mss.pop();
+					keybd_event('F', 0, KEYEVENTF_KEYUP, 0);
+				}
+			}
 		}
 	}
+	
 	keybd_event('F', 0, KEYEVENTF_KEYUP, 0);
-	keybd_event('D', 0, KEYEVENTF_KEYUP, 0);
-	fclose(stdin); 
+	keybd_event('K', 0, KEYEVENTF_KEYUP, 0);
 	return 0;
 }
