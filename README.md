@@ -45,4 +45,7 @@ Ver 1.4.0
 
 Ver 1.5.0  
 * Fixed the issue of Multiplanet.
-* Known issue: When playing "Synthion - Lights Years Away" made by pixxy, it will die on the 923rd tile
+* **(Fixed at Ver 1.6.0)** Known issue: Will not press the button at the wrong time (caused by a hold event after midspin)
+
+Ver 1.6.0
+* Fixed the **known issue** with **Ver 1.5.0**
