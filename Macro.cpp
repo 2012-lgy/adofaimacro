@@ -13,6 +13,8 @@
 #define KEY_DOWN(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 1 : 0)
 #define KEY_UP(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 0 : 1)
 using namespace std;
+
+// Old angledata to new
 double oldtonew (char now) {
 	switch (now) {
 		case 'R':
@@ -102,15 +104,17 @@ double oldtonew (char now) {
 	}
 }
 int keys;
+bool getedmtp, getedbpm;
 
 
 const char quote = char(34);
 const char backslash = char(92);
 
+char lastpressedkey, nextkey;
+
 //get settings
 int offset;
 double bpm, firstbpm;
-bool inputoffset;
 bool inputbpm;
 int pitch;
 bool inputpitch;
@@ -208,7 +212,7 @@ void movechar(string str, char c) {
 	str.erase(remove(str.begin(), str.end(), c), str.end());
 }
 int main() {
-	printf("Ver 1.6.0 (2025-06-15 1:49)\nShow specific information: ");
+	printf("Ver 1.6.1 (2025-06-22 15:22)\nShow specific information: ");
 	cin >> showbpm;
 	printf("Is custom level: ");
 	cin >> cuslev;
@@ -280,7 +284,6 @@ int main() {
 				movechar(input_data, '[');
 				movechar(input_data, ']');
     			char* idx;
-				cout << floor_angledata << ' ' << input_data << ' ' << strtod(input_data.c_str(), &idx) << endl;
     			if (input_data != "999,") {
     				now_degree = strtod(input_data.c_str(), &idx);
     				mids = false;
@@ -322,15 +325,8 @@ int main() {
 		}
 		//Get settings
 		if (setting) {
-			if (inputoffset) {
-    			
-    			char* idx;
-    			offset = strtod(input_data.c_str(), &idx);
-				inputoffset = false;
-			}
-			if (input_data == quoteandcolon("offset")) inputoffset = true;
 			if (inputbpm) {
-    			
+
     			char* idx;
     			firstbpm = strtod(input_data.c_str(), &idx);
 				bpm = firstbpm;
@@ -365,6 +361,8 @@ int main() {
 					ts.push(nowfloor);
 				} else if (input_data == quoteandcomma("SetSpeed")) {
 					setbpm = true;
+					getedmtp = false;
+					getedbpm = false;
 				} else if (input_data == quoteandcomma("Pause")) {
 					setpause = true;
 				} else if (input_data == quoteandcomma("Hold")) {
@@ -379,7 +377,6 @@ int main() {
 			//Get BPM
 			if (setbpm) {
 				if (input) {
-    				
     				char* idx;
     				if (mtp) {
 						bpm *= strtod(input_data.c_str(), &idx);
@@ -391,19 +388,15 @@ int main() {
 					input = false;
 					setbpm = false;
 				}
-				if (input_data == quoteandcomma("Multiplier")) {
-					mtp = true;
-				} else if (input_data == quoteandcomma("Bpm")) {
-					mtp = false;
+				
+				if (!getedmtp) {
+					mtp = (input_data == quoteandcomma("Multiplier"));
+					getedmtp = mtp;
 				}
-				if (mtp) {
-					if (input_data == quoteandcolon("bpmMultiplier")) {
-						input = true;
-					}
-				} else {
-					if (input_data == quoteandcolon("beatsPerMinute")) {
-						input = true;
-					}
+				if (!getedbpm) {
+					cout << input_data << endl;
+					input = (mtp ? (input_data == quoteandcolon("bpmMultiplier")) : (input_data == quoteandcolon("beatsPerMinute")));
+					getedbpm = input;
 				}
 			}
 
@@ -499,7 +492,7 @@ int main() {
 	printf("Processing data\n");
 	//Twirls
 	nowfloor = 0;
-	while (timedata1.size()) {
+	while (timedata1.size() > 1) {
 		nowfloor++;
 		if (timedata1.front() != -1) {
 			if (ting) {
@@ -599,13 +592,14 @@ int main() {
 	
 	fclose(stdin); 
 	cin.ignore(numeric_limits<streamsize>::max(), '\n');
-	printf("OK!\n");
+	printf("OK!\nPress [Enter] to ready.\n");
 	
 	//Get ready
 	bool getready = false;
 	bool press = false;
 	double lastms = 0;
 	nowfloor = 0;
+	while (true) if (KEY_UP(13)) break;
 	while (true) {
 		if (KEY_DOWN(13)) {
 			if (!press) {
@@ -654,7 +648,7 @@ int main() {
 					timedata.pop();
 					keybd_event('F', 0, KEYEVENTF_KEYUP, 0);
 				}
-				printf("%d:\nBPM: %f\nDelta: %fms\nNext hold: %d\n", nowfloor, 60000 / (timedata.front() - lastms), double(end - start) - timedata.front(), holdtile.front());
+				printf("%d:\nBPM: %f\nDelta: %fms\nNext hold: %d\n", nowfloor, 60000 / (timedata.front() - lastms), double(end - start) * pitch / 100 + delta - timedata.front(), holdtile.front());
 				lastms = timedata.front();
 			}
 		}
@@ -668,7 +662,7 @@ int main() {
 			}
 			if (KEY_DOWN(VK_LEFT)){
 				delta -= 0.002;
-				printf("Offset %.15f\n", delta); 
+				printf("Offset %.15f\n", delta);
 			}
 			if (KEY_DOWN(VK_RIGHT)){
 				delta += 0.002;
