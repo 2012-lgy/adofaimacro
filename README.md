@@ -49,3 +49,6 @@ Ver 1.5.0
 
 Ver 1.6.0
 * Fixed the **known issue** with **Ver 1.5.0**
+
+Ver 1.6.1
+* Fixed issues caused by optimization.
